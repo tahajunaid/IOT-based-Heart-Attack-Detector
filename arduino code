@@ -1,0 +1,67 @@
+#include <Blynk.h>
+
+#include <SoftwareSerial.h>
+SoftwareSerial SwSerial(10, 11); // RX, TX
+    
+#include <BlynkSimpleStream.h>
+#include <Adafruit_SSD1306.h>
+#include <splash.h>
+
+#include <Adafruit_GFX.h>
+#include <Adafruit_SPITFT.h>
+#include <Adafruit_SPITFT_Macros.h>
+#include <gfxfont.h>
+
+#include <Adafruit_SSD1306.h>
+ #define BLYNK_PRINT SwSerial
+#define OLED_Address 0x3C        
+Adafruit_SSD1306 oled(128, 64);  
+char auth[] = "<YOUR_AUTH_TOKEN>";
+int x=0;
+int lastx=0;
+int lasty=0;
+int LastTime=0;
+int ThisTime;
+bool BPMTiming=false;
+bool BeatComplete=false;
+int BPM=0;
+int sensorData=0;
+int sensordata=0;
+#define UpperThreshold 560
+#define LowerThreshold 530
+
+
+BlynkTimer timer;
+
+void myTimerEvent()
+{  sensordata = analogRead(A0);
+  sensordata=int(50/(float(sensorData)/1000));
+  Blynk.virtualWrite(V1, sensordata);
+  if(sensorData>100)
+  {Blynk.notify("Code Blue !!");}
+}
+void setup() {
+  SwSerial.begin(9600);
+  oled.begin(SSD1306_SWITCHCAPVCC, OLED_Address);
+  oled.clearDisplay();
+  oled.setTextSize(2);
+   Serial.begin(9600);
+  Blynk.begin(Serial, auth);
+ timer.setInterval(1000L, myTimerEvent);
+}
+BLYNK_READ(V0) //Blynk app has something on V5
+{
+  sensorData = analogRead(A0);
+  sensorData=int(50/(float(sensorData)/1000));
+  Blynk.virtualWrite(V0, sensorData);
+  
+  
+}
+
+void loop() 
+{
+  
+  
+  Blynk.run();
+  timer.run();
+}
